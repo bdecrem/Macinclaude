@@ -1,0 +1,4 @@
+/Users/bartdecrem/Documents/coding2025/hilma/apps/macplus/porthole/build-test/CMakeFiles/Porthole.dir
+/Users/bartdecrem/Documents/coding2025/hilma/apps/macplus/porthole/build-test/CMakeFiles/Porthole_APPL.dir
+/Users/bartdecrem/Documents/coding2025/hilma/apps/macplus/porthole/build-test/CMakeFiles/edit_cache.dir
+/Users/bartdecrem/Documents/coding2025/hilma/apps/macplus/porthole/build-test/CMakeFiles/rebuild_cache.dir
