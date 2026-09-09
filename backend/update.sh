@@ -18,7 +18,7 @@ DEVTREE="${MACPLUS_DEVTREE:-/Users/admin/Documents/code/hilma}"
 ENVFILE="$HOME/.macplus-backend.env"
 UID_N="$(id -u)"
 AGENT_DIRS="agent agent-atkinson agent-surf agent-mux agent-imessage agent-diag agent-quote agent-bridge agent-screen agent-porthole agent-pssh"
-LONG_RUNNERS="mux imessage diag quote bridge screen porthole pssh rsh pixel"
+LONG_RUNNERS="mux imessage diag quote bridge screen porthole pssh rsh pixel oracle imsghttp dodo"
 
 echo "== pull =="
 BEFORE="$(git -C "$DEPLOY" rev-parse --short HEAD)"
@@ -39,7 +39,7 @@ if [ -r "$DEVTREE/.env.local" ]; then
   umask 077
   {
     echo "# MacPlus backend secrets — synced from $DEVTREE/.env.local by backend/update.sh ($(date +%F))."
-    grep -E '^(ANTHROPIC_API_KEY|OPENAI_API_KEY|TOGETHER_API_KEY|SUPABASE_URL|SUPABASE_SERVICE_KEY)=' "$DEVTREE/.env.local"
+    grep -E '^(ANTHROPIC_API_KEY|OPENAI_API_KEY|TOGETHER_API_KEY|SUPABASE_URL|SUPABASE_SERVICE_KEY|IMSG_HTTP_SECRET|F2_SESSION_SECRET|DODO_F2_USER_ID|DODO_MACHINE_TOKEN)=' "$DEVTREE/.env.local"
   } > "$ENVFILE.tmp" && mv "$ENVFILE.tmp" "$ENVFILE"
   echo "   re-synced $(grep -c '=' "$ENVFILE") keys -> $ENVFILE"
 else
@@ -57,7 +57,7 @@ done
 
 sleep 2
 echo "== fleet status =="
-for spec in code:2324 paint:2325 surf:2326 imessage:2328 rsh:2329 mux:2330 diag:2331 quote:2332 bridge:2333 screen:2334 porthole:2336 pssh:2222; do
+for spec in code:2324 paint:2325 surf:2326 imessage:2328 rsh:2329 mux:2330 diag:2331 quote:2332 bridge:2333 screen:2334 porthole:2336 pssh:2222 oracle:2338; do
   n="${spec%%:*}"; p="${spec##*:}"
   if /usr/sbin/netstat -an -p tcp | grep -q "\.$p .*LISTEN"; then
     echo "   $n :$p LISTEN"

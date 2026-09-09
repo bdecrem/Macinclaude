@@ -19,13 +19,14 @@
 #   netspeed :2335  node:net bulk server for the Plus NetSpeed speed test
 #   rsh      :2329  node:net INSTANT shell for Plutonix (raw TCP -> pty, no SSH)
 #   pixel    :2337  node:net Daily Pixel collaborative canvas (+ daily Claude strokes)
+#   dodo     :2339  node:net Dodo for Macintosh -> feynd.cc (F2 chat as one user)
 #
 # Secrets come from ~/.macplus-backend.env (chmod 600, NOT in git, NOT in the
 # plists). backend/update.sh re-syncs it from the dev tree's .env.local when
 # that file is readable.
 set -u
 
-NAME="${1:?usage: run-service.sh <code|paint|surf|mux|imessage|diag|quote|bridge|screen|netspeed|porthole|pssh|rsh|pixel>}"
+NAME="${1:?usage: run-service.sh <code|paint|surf|mux|imessage|diag|quote|bridge|screen|netspeed|porthole|pssh|rsh|pixel|imsghttp|dodo>}"
 DEPLOY="${MACPLUS_DEPLOY:-/Users/admin/macinclaude}"
 BASE="$DEPLOY/apps/macplus"
 SOCAT=/opt/homebrew/bin/socat
@@ -81,15 +82,34 @@ case "$NAME" in
     # completes (the system sshd on :22 kills it). login -f admin shell.
     export PSSH_LOGIN_USER="${PSSH_LOGIN_USER:-admin}"
     cd "$BASE/agent-pssh"; exec /usr/bin/env node src/server.js --listen 2222 ;;
+  imsghttp)
+    # Outbound iMessage over HTTP for F2 (daily cards, chat replies) — see
+    # agent-imsghttp/server.mjs. Auth via IMSG_HTTP_SECRET from the env file.
+    cd "$BASE/agent-imsghttp"; exec /usr/bin/env node server.mjs --listen 2340 ;;
   pixel)
     # Daily Pixel canvas — dependency-free node (needs ANTHROPIC_API_KEY for
     # the daily Claude strokes; runs fine without, just never draws).
     cd "$BASE/agent-pixel"; exec /usr/bin/env node server.mjs --listen 2337 ;;
+  dodo)
+    # Dodo for Macintosh — dependency-free node. Mints the user's f2_session
+    # from F2_SESSION_SECRET + DODO_F2_USER_ID (env file) and proxies the Plus's
+    # line protocol to feynd.cc /api/f2/*.
+    cd "$BASE/agent-dodo"; exec /usr/bin/env node server.mjs --listen 2339 ;;
   rsh)
     # INSTANT shell for Plutonix — raw TCP -> pty -> login shell. No SSH, no
     # handshake, no per-key crypto; trusted-LAN only (same model as :2323).
     export RSH_LOGIN_USER="${RSH_LOGIN_USER:-admin}"
     cd "$BASE/agent-rsh"; exec /usr/bin/env node server.mjs --listen 2329 ;;
+  oracle)
+    # THE ORACLE hosted on the mini: numpy fp32 inference of the same 1985 model
+    # the Plus runs, plus chat memory / top-p / repetition penalty / postproc.
+    # Lazily builds a venv with numpy + sentencepiece on first launch.
+    D="$BASE/agent-oracle"; PY="$D/.venv/bin/python"
+    if ! "$PY" -c "import numpy, sentencepiece" 2>/dev/null; then
+      /usr/bin/python3 -m venv "$D/.venv"
+      "$D/.venv/bin/pip" install -q --disable-pip-version-check numpy sentencepiece
+    fi
+    cd "$D"; exec "$PY" oracle_server.py --listen 2338 ;;
   *)
     echo "run-service: unknown service '$NAME'" >&2; exit 64 ;;
 esac
